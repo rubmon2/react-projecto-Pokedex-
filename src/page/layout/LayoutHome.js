@@ -10,6 +10,9 @@ export const LayoutHome = () => {
 //estado
 const [arrayPokemon, setArrayPokemon]=useState([])
 
+//limite de las veces q se actualiza card 100 veces, 
+//para que aparezcan 100 pokemon por que son 100 numeros
+const limit=100
 
   //useeffect
 useEffect(()=>{
@@ -18,7 +21,7 @@ useEffect(()=>{
 const getApi= async()=>{
 try {
 
-  const apiPokemon= await axios.get(`${urlPokemon}`)
+  const apiPokemon= await axios.get(`${urlPokemon}/?offset=0&limit=${limit}`)
   setArrayPokemon(apiPokemon.data.results)
 } catch (error) {
   console.error("este es el error: ", error)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import css from "./CardsModule.module.scss"
-import {urlEspecies, urlPokemon} from "../../apis/Apis"
+import {urlEspecies, urlEvolvePokemon, urlPokemon} from "../../apis/Apis"
 import axios from 'axios'
 export const Cards = ({card}) => {
 
@@ -8,12 +8,12 @@ export const Cards = ({card}) => {
 
 const [itemPokemon, setItemPokemon]=useState({})
 const [statsPokemon, setStatsPokemon]=useState({})
-const [stats2Pokemon, setStats2Pokemon]=useState({})
-const[evolvePokemon,setEvolvePokemon]=useState({})
+const[evolutionPokemon,setEvoluPokemon]=useState([])
 
-//useeffect, img
+//useeffect, img y datos del pokemon, sacados desde card que tiene el nombre y url de cada pokemon 
+//revisarlo con console.log(card)
 useEffect(()=>{
-
+    
 const dataPokemon=async()=>{
     try {
         const apiDatapokemon= await axios.get(`${urlPokemon}/${card.name}`)
@@ -23,65 +23,137 @@ const dataPokemon=async()=>{
     }}
 
 dataPokemon()
-},[])
-
-
-
-//useeffect  id,name,height,weight
-useEffect(()=>{
-const especiePokemon=async()=>{
-try {
-    const urlCard= card.url.split("/")
-    const apiStatsPokemon= await axios.get(`${urlPokemon}/${urlCard[6]}`)
-   setStatsPokemon(apiStatsPokemon.data)
-} catch (error) {
-    console.error("este es el error especie: ", error)
-}}
-especiePokemon()
 },[card])
 
 
+//todos los stats de los pokemon
 useEffect(()=>{
-    const especie2Pokemon=async()=>{
+    const getStatsPokemon=async()=>{
     try {
         const urlCard= card.url.split("/")
-        const apiStats2Pokemon= await axios.get(`${urlEspecies}/${urlCard[6]}`)
-       setStats2Pokemon(apiStats2Pokemon.data)
+        const apiStatsPokemon= await axios.get(`${urlEspecies}/${urlCard[6]}`)
+       setStatsPokemon(apiStatsPokemon.data)
     } catch (error) {
         console.error("este es el error especie: ", error)
     }}
-    especie2Pokemon()
-    },[card])
-    
+    getStatsPokemon()
 
-                        //stats control
-//peso
-const weight= statsPokemon?.weight / 10
-//name
-const name=statsPokemon?.name
-//id para 3 numeros
-let idPokemon=statsPokemon?.id?.toString()
+    },[card])
+
+
+
+ //evolve
+useEffect(()=>{
+//funcion url para traer img de pokemon evolucion
+const getEvolveImg=async (id) => {
+    try {
+        const response= await axios.get(`${urlPokemon}/${id}`)
+      return response?.data?.sprites?.other["official-artwork"]?.front_default
+    } catch (error) {
+        console.error("Error desde getEvolveimg: ",error)
+    }  
+}
+console.log(statsPokemon)
+//tiene evolucione el pokemon? imprimir su img (inicial)
+    if(statsPokemon?.evolution_chain){
+  
+        const obtenerevolucion= async()=>{
+             const arrayEvoluciones=[]
+             const url=statsPokemon?.evolution_chain?.url.split("/")
+          try {
+
+            //axios
+             const apiEvolve= await axios.get(`${urlEvolvePokemon}/${url[6]}`)
+             const url2= apiEvolve.data?.chain?.species?.url?.split("/")
+             const imgEvolve= await getEvolveImg(url2[6])
+
+            //push
+            arrayEvoluciones.push({
+                img:imgEvolve,
+                name:apiEvolve.data?.chain?.species?.name
+            }) 
+
+//tiene evolucione el pokemon? imprimir la  img de la evolucion (1ra)
+            if(apiEvolve.data?.chain?.evolves_to?.length != 0){
+                //split url 
+                const data2=apiEvolve.data?.chain.evolves_to[0]?.species
+                const idData= data2.url.split("/")
+                const imgEvolve2= await getEvolveImg(idData[6])
+    
+                arrayEvoluciones.push({
+                    img:imgEvolve2,
+                    name:data2.name}) 
+
+            }
+
+ //tiene otra evolcion? imprimir su img (3ra img, 2 evolucion)             
+            if(apiEvolve.data?.chain?.evolves_to[0]?.evolves_to[0]){
+                const data3=apiEvolve.data?.chain.evolves_to[0]?.evolves_to[0]?.species
+
+    
+                const idData2= data3.url.split("/")
+                 const imgEvolve3= await getEvolveImg(idData2[6])
+    
+                arrayEvoluciones.push({
+                    img:imgEvolve3,
+                    name:data3.name }) 
+            }
+
+            setEvoluPokemon(arrayEvoluciones)  
+          } catch (error) {
+             console.error("este es un error de obtoneerevoluciones",error)
+          }
+  
+ } 
+        
+    //llamar a funcion evoluciones
+        obtenerevolucion()
+     } 
+//dependencia
+},[statsPokemon])
+
+
+
+                                            //stats control
+                    //peso
+const weight= itemPokemon?.weight / 10
+                    //name
+const name=itemPokemon?.name
+                    //id para 3 numeros
+let idPokemon=itemPokemon?.id?.toString()
 if(idPokemon?.length==1){
     idPokemon= "00"+idPokemon
 }else if(idPokemon?.length==2){
     idPokemon= "0"+idPokemon
 }
 
+                    //altura
+const height=itemPokemon?.height *10
 
-//altura
-const height=statsPokemon?.height *10
+                    //habitat
+const habitat=statsPokemon?.habitat?.name
+                    //arreglo stats
+const stats = itemPokemon?.stats || []; 
 
-//habitat
-const habitat=stats2Pokemon?.habitat?.name
-//arreglo stats
-const stats = statsPokemon?.stats || []; // Asegúrate de que sea un arreglo
+
+                                
+
+
+
+
+
+// console.log(`${statsPokemon.name} y su id: ${statsPokemon.id}`, statsPokemon.evolution_chain)
+
+
+
+
 
 
   return (
     <div className={css.card}>
        <img className={css.img_poke} src={itemPokemon?.sprites?.other["official-artwork"]?.front_default} alt='Picture Pokemon'/>
     
-    <div className={`${css.sub_card} bg-${stats2Pokemon?.color?.name}`}>
+    <div className={`${css.sub_card} bg-${statsPokemon?.color?.name}`}>
 
     <strong className={css.id_card}>{idPokemon}</strong>
     <strong className={css.name_card}>{name}</strong>
@@ -99,6 +171,14 @@ const stats = statsPokemon?.stats || []; // Asegúrate de que sea un arreglo
         ))}
         
     </div>
+           <div className={css.div_evo}>
+                {evolutionPokemon.map((evolutions, index) => (
+                    <div className={css.item_evo} key={index}>
+                    <img className={css.img_evo} src={evolutions.img} alt={evolutions.name} />
+                    <p className={css.name_evo}>{evolutions.name}</p>
+                    </div>
+                ))}
+            </div>
 
 
     </div>
