@@ -1,0 +1,16 @@
+.header{
+background-color: #636161;
+    .header_div{
+ height: 64px;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+width: 1400px;
+max-width: calc(100% - 30px);
+margin: 0 auto;
+    }
+
+    .header_div_logo{
+        >img{width:120px;}
+    }
+}
