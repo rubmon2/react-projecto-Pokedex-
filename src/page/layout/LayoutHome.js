@@ -7,8 +7,10 @@ import { Cards } from '../Cards/Cards'
 
 export const LayoutHome = () => {
 
-//estado
+//estados array pokemon y search input
 const [arrayPokemon, setArrayPokemon]=useState([])
+const [search,setSearch]=useState("")
+
 
 //limite de las veces q se actualiza card 100 veces, 
 //para que aparezcan 100 pokemon por que son 100 numeros
@@ -29,11 +31,25 @@ try {
 getApi()
   },[])
 
+  //fnx obtenersearch Value
+  const obtenerSearch=(inputValue)=>{
+    setSearch(inputValue.toLowerCase())   
+  }
+
+  
+//fnx filter y nuevo array
+const filterPokemon=arrayPokemon.filter((pokemon)=> 
+pokemon.name.toLowerCase().includes(search.toLowerCase())
+)
+
+
+
+
   return (
     <div className={css.layout}>  
-        <Header />
+        <Header obtenerSearch={obtenerSearch} />
         <div className={css.card_content}>
-            {arrayPokemon.map((card, index) => {
+            {filterPokemon.map((card, index) => {
                 return (
                     <Cards  
                         key={index}

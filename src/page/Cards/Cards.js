@@ -53,7 +53,7 @@ const getEvolveImg=async (id) => {
         console.error("Error desde getEvolveimg: ",error)
     }  
 }
-console.log(statsPokemon)
+
 //tiene evolucione el pokemon? imprimir su img (inicial)
     if(statsPokemon?.evolution_chain){
   
